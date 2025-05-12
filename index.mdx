@@ -39,13 +39,46 @@ mode: "center"
 
 ## Quick start
 
-```bash
+<Tabs>
+  <Tab title="bash">
+    ```bash
 curl -X POST https://api.markdown2pdf.ai/v1/convert \
      -H "Content-Type: text/markdown" \
      -H "Authorization: L402 <macaroon>:<preimage>" \
      --data-binary @your_file.md \
      --output your_file.pdf
 ```
+  </Tab>
+  <Tab title="MCP">
+    ```bash
+curl -X POST https://api.markdown2pdf.ai/v1/convert \
+     -H "Content-Type: text/markdown" \
+     -H "Authorization: L402 <macaroon>:<preimage>" \
+     --data-binary @your_file.md \
+     --output your_file.pdf
+```
+  </Tab>
+  <Tab title="Python">
+    ```bash
+curl -X POST https://api.markdown2pdf.ai/v1/convert \
+     -H "Content-Type: text/markdown" \
+     -H "Authorization: L402 <macaroon>:<preimage>" \
+     --data-binary @your_file.md \
+     --output your_file.pdf
+```
+  </Tab>
+  <Tab title="Typescript">
+    ```bash
+curl -X POST https://api.markdown2pdf.ai/v1/convert \
+     -H "Content-Type: text/markdown" \
+     -H "Authorization: L402 <macaroon>:<preimage>" \
+     --data-binary @your_file.md \
+     --output your_file.pdf
+```
+  </Tab>
+</Tabs>
+
+
 
 If your agent needs help making payments, try [fewsats.com](https://fewsats.com)
 
