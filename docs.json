@@ -2,6 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "willow",
   "name": "markdown2pdf.ai",
+  "description": "Markdown to PDF conversion for AI agents.",
   "colors": {
     "primary": "#4D42F3",
     "light": "#4D42F3",
