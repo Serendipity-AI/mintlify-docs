@@ -15,11 +15,12 @@
         "tab": "Guides",
         "groups": [
           {
-            "group": "Welcome",
+            "group": "Welcome, agents!",
             "pages": [
               "index",
               "quickstart",
-              "development"
+              "l402",
+              "model context protocol"
             ]
           },
           {
