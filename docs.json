@@ -20,18 +20,15 @@
               "index",
               "quickstart",
               "l402",
-              "model context protocol"
+              "mcp"
             ]
           },
           {
             "group": "Essentials",
             "pages": [
+              "essentials/configuration",
               "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/settings",
-              "essentials/navigation",
-              "essentials/reusable-snippets"
+              "essentials/payments"
             ]
           }
         ]
