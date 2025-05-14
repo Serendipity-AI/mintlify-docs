@@ -6,7 +6,7 @@ export const MarkdownToPDFPlayground = () => {
   const [showModal, setShowModal] = React.useState(false);
 
   const stubbedInvoiceAPI = async () => ({
-    invoice: 'lnbc1-stubbed-invoice',
+    invoice: 'lnbc1-sample-invoice-1234567890abcdefg',
     paymentHash: 'abc123',
   });
 
@@ -107,39 +107,58 @@ export const MarkdownToPDFPlayground = () => {
               />
             </div>
             <div style={{
-              fontFamily: 'monospace',
-              fontSize: '0.85rem',
-              wordBreak: 'break-all',
+              display: 'flex',
+              alignItems: 'center',
               backgroundColor: '#f5f5f5',
               padding: '10px',
               borderRadius: '4px',
-              marginBottom: '0.5rem',
-              textAlign: 'left'
+              marginBottom: '1rem',
+              fontFamily: 'monospace',
+              fontSize: '0.85rem',
+              wordBreak: 'break-all'
             }}>
-              {invoice}
+              <div style={{ flexGrow: 1, paddingRight: '8px' }}>
+                {invoice}
+              </div>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(invoice);
+                  setStatus('Copied!');
+                  setTimeout(() => setStatus('Waiting for payment...'), 1000);
+                }}
+                style={{
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                aria-label="Copy invoice"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+              </button>
             </div>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(invoice);
-                setStatus('Copied!');
-                setTimeout(() => setStatus('Waiting for payment...'), 1000);
-              }}
-              style={{
-                backgroundColor: '#4D42F3',
-                color: 'white',
-                padding: '6px 10px',
-                fontSize: '0.8rem',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                marginBottom: '1rem'
-              }}
-            >
-              Copy Invoice
-            </button>
             <div style={{ color: '#555', marginBottom: '0.5rem' }}>{status}</div>
             <button
-              onClick={() => setShowModal(false)}
+              onClick={() => {
+                setShowModal(false);
+                setInvoice(null);
+                setStatus('');
+                setIsConverting(false);
+              }}
               style={{
                 backgroundColor: '#eee',
                 padding: '8px 14px',
