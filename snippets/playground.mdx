@@ -196,10 +196,17 @@ export const MarkdownToPDFPlayground = () => {
           disabled={!markdown || isLoading}
           className="px-6 py-3 rounded-2xl font-semibold transition w-full
             bg-indigo-600 dark:bg-indigo-700 text-white shadow-sm hover:bg-indigo-800 dark:hover:bg-indigo-400
-            disabled:bg-zinc-200 dark:disabled:bg-zinc-800 disabled:text-zinc-400 dark:disabled:text-zinc-600
-            disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed"
+            disabled:bg-zinc-200 dark:disabled:bg-zinc-800 disabled:text-zinc-500 dark:disabled:text-zinc-400
+            disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {isLoading ? 'Processing...' : 'Convert to PDF'}
+          {isLoading ? (
+            <>
+              <div className="w-5 h-5 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
+              Processing...
+            </>
+          ) : (
+            'Convert to PDF'
+          )}
         </button>
       </div>
 
