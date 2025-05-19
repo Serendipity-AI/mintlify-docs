@@ -5,13 +5,17 @@ export const MarkdownToPDFPlayground = () => {
   const [status, setStatus] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [paymentPollPayload, setPaymentPollPayload] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const isCancelledRef = useRef(false);
 
-  console.log("Preparing the demonstration.");
-  const apiServer = 'https://intelligence-api-qa.ent.sdy.ai'
+  const apiServer = 'https://intelligence-api-qa.ent.sdy.ai';
   const apiPath = '/v1/document/l402/markdown';
   const apiKey = 'UUHyULAnSR6uwDfroCWK651sz5IuKgAy8zTlzZaKY33';
 
   const convert = () => {
+    isCancelledRef.current = false;
+    setIsLoading(true);
+
     const payload = {
       data: {
         text_body: markdown,
@@ -21,7 +25,7 @@ export const MarkdownToPDFPlayground = () => {
         }
       },
       options: {
-        document_name: 'demonstration.pdf',
+        document_name: 'demonstration.pdf'
       }
     };
 
@@ -29,7 +33,7 @@ export const MarkdownToPDFPlayground = () => {
     setQrSvg('');
     setStatus('Requesting conversion...');
     setPaymentPollPayload(payload);
-    console.log("Requesting markdown to PDF conversion.");
+
     const doFetch = async () => {
       try {
         const response = await fetch(apiServer + apiPath, {
@@ -41,27 +45,29 @@ export const MarkdownToPDFPlayground = () => {
           body: JSON.stringify(payload)
         });
 
+        if (isCancelledRef.current) return;
+
         if (response.status === 402) {
-          console.log("402 response received. We will await payment.");
-          const { payment_request, payment_qr_svg } = await response.json();
+          const json = await response.json();
+          const { payment_request, payment_qr_svg } = json;
           setInvoice(payment_request);
           setQrSvg(payment_qr_svg);
           setShowModal(true);
           setStatus('Waiting for payment...');
           pollPayment(payload);
         } else if (response.status === 200) {
-          console.log("Payment received.");
           const data = await response.json();
-          console.log(data);
           const { path } = data;
+          setStatus("Payment received! Generating your PDF...");
           pollDocument(apiServer + path);
-
         } else {
           setStatus('Unexpected response. Please try again.');
+          setIsLoading(false);
         }
       } catch (err) {
         console.error(err);
         setStatus('Something went wrong.');
+        setIsLoading(false);
       }
     };
 
@@ -71,7 +77,8 @@ export const MarkdownToPDFPlayground = () => {
   const pollPayment = (payload) => {
     const poll = async () => {
       try {
-        console.log(apiServer + apiPath)
+        if (isCancelledRef.current) return;
+
         const res = await fetch(apiServer + apiPath, {
           method: 'POST',
           headers: {
@@ -81,19 +88,22 @@ export const MarkdownToPDFPlayground = () => {
           body: JSON.stringify(payload)
         });
 
+        if (isCancelledRef.current) return;
+
         if (res.status === 402) {
           setTimeout(poll, 3000);
         } else if (res.status === 200 || res.status === 201) {
           const { path } = await res.json();
           setStatus("Payment received! Generating your PDF...");
-          console.log("the path was "+path)
           pollDocument(apiServer + path);
         } else {
           setStatus('Unexpected response during payment polling.');
+          setIsLoading(false);
         }
       } catch (err) {
         console.error(err);
         setStatus('Polling error. Please refresh and try again.');
+        setIsLoading(false);
       }
     };
 
@@ -103,35 +113,35 @@ export const MarkdownToPDFPlayground = () => {
   const pollDocument = (documentStatusUrl) => {
     const poll = async () => {
       try {
-        console.log("Polling for document status using "+documentStatusUrl);
+        if (isCancelledRef.current) return;
+
         const res = await fetch(documentStatusUrl);
 
         if (res.status !== 200) {
           setStatus("PDF generation failed.");
+          setIsLoading(false);
           return;
         }
 
         const { status: docStatus, path } = await res.json();
 
+        if (isCancelledRef.current) return;
+
         if (docStatus !== "Done") {
+          setStatus("Waiting for your PDF to finish generating...");
           setTimeout(poll, 3000);
-          console.log("The document is not ready yet, polling...");
-          setStatus("Waiting for your PDF to finish generating...")
           return;
         }
 
-        console.log("Fetching final PDF URL from: " + apiServer + path);
         const finalRes = await fetch(apiServer + path);
 
         if (!finalRes.ok) {
           setStatus("Failed to retrieve final PDF link.");
+          setIsLoading(false);
           return;
         }
 
         const { url } = await finalRes.json();
-
-        console.log("Downloading from " + url);
-
         const fileRes = await fetch(url);
         const blob = await fileRes.blob();
         const objectUrl = URL.createObjectURL(blob);
@@ -142,13 +152,14 @@ export const MarkdownToPDFPlayground = () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-
-        URL.revokeObjectURL(objectUrl); 
+        URL.revokeObjectURL(objectUrl);
 
         setStatus("Download Complete!");
+        setIsLoading(false);
       } catch (err) {
         console.error(err);
         setStatus("Document polling error.");
+        setIsLoading(false);
       }
     };
 
@@ -162,10 +173,12 @@ export const MarkdownToPDFPlayground = () => {
   };
 
   const cancelPayment = () => {
+    isCancelledRef.current = true;
     setShowModal(false);
     setInvoice(null);
     setQrSvg('');
     setStatus('');
+    setIsLoading(false);
   };
 
   return (
@@ -183,13 +196,13 @@ export const MarkdownToPDFPlayground = () => {
         />
         <button
           onClick={convert}
-          disabled={!markdown}
+          disabled={!markdown || isLoading}
           className="px-6 py-3 rounded-2xl font-semibold transition w-full
             bg-indigo-600 dark:bg-indigo-700 text-white shadow-sm hover:bg-indigo-800 dark:hover:bg-indigo-400
             disabled:bg-zinc-200 dark:disabled:bg-zinc-800 disabled:text-zinc-400 dark:disabled:text-zinc-600
             disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed"
         >
-          Convert to PDF
+          {isLoading ? 'Processing...' : 'Convert to PDF'}
         </button>
       </div>
 
