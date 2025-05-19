@@ -254,7 +254,7 @@ export const MarkdownToPDFPlayground = () => {
               onClick={cancelPayment}
               className="w-full px-4 py-2 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
             >
-              {status === 'Download Complete!' ? 'OK' : 'Cancel'}
+              {status.toLowerCase().includes('download complete') ? 'OK' : 'Cancel'}
             </button>
           </div>
           <style>
