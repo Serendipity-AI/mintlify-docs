@@ -125,7 +125,7 @@ export const MarkdownToPDFPlayground = () => {
         if (isCancelledRef.current) return;
 
         if (docStatus !== "Done") {
-          setStatus("Waiting for your PDF to finish generating...");
+          setStatus("Waiting for your PDF to generate...");
           setTimeout(poll, 3000);
           return;
         }
@@ -151,7 +151,7 @@ export const MarkdownToPDFPlayground = () => {
         document.body.removeChild(link);
         URL.revokeObjectURL(objectUrl);
 
-        setStatus("Download Complete!");
+        setStatus("Download complete");
         setIsLoading(false);
       } catch (err) {
         console.error(err);
