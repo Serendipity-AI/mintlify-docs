@@ -218,7 +218,7 @@ export const MarkdownToPDFPlayground = () => {
           >
             <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-0 mt-1">Scan to Pay</h3>
             <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-0">
-              This is your Lightning invoice. Use any wallet that supports Lightning to pay.
+              This is your Lightning invoice.<br/>Use any wallet that supports Lightning to pay.
             </p>
             <div className="flex justify-center">
               <img
@@ -227,8 +227,8 @@ export const MarkdownToPDFPlayground = () => {
                 className="w-44 h-44 bg-white rounded border border-zinc-100 dark:border-zinc-800"
               />
             </div>
-            <div className="flex items-center bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 font-mono text-xs text-zinc-800 dark:text-zinc-200">
-              <div className="flex-1 break-all pr-2">{invoice}</div>
+            <div className="flex items-center bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 font-mono text-[8px] text-zinc-800 dark:text-zinc-200">
+              <div className="flex-1 break-all pr-2 leading-tight">{invoice}</div>
               <button
                 onClick={copyInvoice}
                 className="p-1 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900 transition"
