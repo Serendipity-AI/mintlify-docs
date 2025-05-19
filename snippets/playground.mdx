@@ -4,96 +4,145 @@ export const MarkdownToPDFPlayground = () => {
   const [qrSvg, setQrSvg] = useState('');
   const [status, setStatus] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [paymentPollPayload, setPaymentPollPayload] = useState(null);
 
-  const convert = async () => {
+  const apiServer = 'https://intelligence-api-qa.ent.sdy.ai'
+  const apiPath = '/v1/document/l402/markdown';
+  const apiKey = 'UUHyULAnSR6uwDfroCWK651sz5IuKgAy8zTlzZaKY33';
+
+  const convert = () => {
+    const payload = {
+      data: {
+        text_body: markdown,
+        meta: {
+          title: 'Playground demonstration',
+          date: new Date().toISOString()
+        }
+      },
+      options: {
+        document_name: 'demonstration.pdf',
+      }
+    };
+
     setInvoice(null);
     setQrSvg('');
     setStatus('Requesting conversion...');
+    setPaymentPollPayload(payload);
 
-    console.log(markdown)
-    try {
-      const response = await fetch('https://intelligence-api-qa.ent.sdy.ai/v1/document/l402/markdown', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': 'UUHyULAnSR6uwDfroCWK651sz5IuKgAy8zTlzZaKY33' },
-        body: JSON.stringify(
-          { 
-            'data': { 
-              'text_body': markdown,
-              'meta': {
-                'title': 'Playground demonstration',
-                'date': new Date().toISOString()
-              }
-            },
-            'options': {
-              'document_name': 'demonstration.pdf',
-              'delivery': {
-                'method': 'email',
-                'to_email': 'jim@serendipityai.co.uk'
-              }
-            }
-          })
-      });
-
-      if (response.status === 402) {
-        const { detail, payment_request, payment_qr_svg, amount_sats, currency, status_code } = await response.json();
-        setInvoice(payment_request);
-        setQrSvg(payment_qr_svg);
-        setShowModal(true);
-        setStatus('Waiting for payment...');
-        pollPayment('https://intelligence-api-qa.ent.sdy.ai/v1/document/l402/markdown');
-      } else if (response.status === 200) {
-        const { documentStatusUrl } = await response.json();
-        pollDocument(documentStatusUrl);
-      } else {
-        setStatus('Unexpected response. Please try again.');
-      }
-    } catch (err) {
-      console.error(err);
-      setStatus('Something went wrong.');
-    }
-  };
-
-  const pollPayment = (checkPaymentUrl) => {
-    const poll = async () => {
+    const doFetch = async () => {
       try {
-        const res = await fetch(checkPaymentUrl);
-        if (res.status === 402) {
-          setTimeout(poll, 3000);
-        } else if (res.status === 200) {
-          const { documentStatusUrl } = await res.json();
+        const response = await fetch(apiServer + apiPath, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.status === 402) {
+          const { payment_request, payment_qr_svg } = await response.json();
+          setInvoice(payment_request);
+          setQrSvg(payment_qr_svg);
+          setShowModal(true);
+          setStatus('Waiting for payment...');
+          pollPayment(payload);
+        } else if (response.status === 200 || response.status === 201) {
+          const { documentStatusUrl } = await response.json();
           pollDocument(documentStatusUrl);
         } else {
-          setStatus('Payment failed or cancelled.');
+          setStatus('Unexpected response. Please try again.');
+        }
+      } catch (err) {
+        console.error(err);
+        setStatus('Something went wrong.');
+      }
+    };
+
+    doFetch();
+  };
+
+  const pollPayment = (payload) => {
+    const poll = async () => {
+      try {
+        console.log(apiServer + apiPath)
+        const res = await fetch(apiServer + apiPath, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.status === 402) {
+          setTimeout(poll, 3000);
+        } else if (res.status === 200 || res.status === 201) {
+          const { path } = await res.json();
+          pollDocument(apiServer + path);
+        } else {
+          setStatus('Unexpected response during payment polling.');
         }
       } catch (err) {
         console.error(err);
         setStatus('Polling error. Please refresh and try again.');
       }
     };
+
     poll();
   };
 
   const pollDocument = (documentStatusUrl) => {
     const poll = async () => {
       try {
+        console.log("Now retrieving document status");
         const res = await fetch(documentStatusUrl);
-        if (res.status === 202) {
-          setTimeout(poll, 3000);
-        } else if (res.status === 200) {
-          const { pdfUrl } = await res.json();
-          const link = document.createElement('a');
-          link.href = pdfUrl;
-          link.download = 'converted.pdf';
-          link.click();
-          setStatus('Download Complete!');
-        } else {
-          setStatus('PDF generation failed.');
+
+        if (res.status !== 200) {
+          setStatus("PDF generation failed.");
+          return;
         }
+
+        const { status: docStatus, path } = await res.json();
+
+        if (docStatus !== "Done") {
+          console.log("Polling for document " + documentStatusUrl + " (status: " + docStatus + ")");
+          setTimeout(poll, 3000);
+          return;
+        }
+
+        console.log("Fetching final PDF URL from: " + apiServer + path);
+        const finalRes = await fetch(apiServer + path);
+
+        if (!finalRes.ok) {
+          setStatus("Failed to retrieve final PDF link.");
+          return;
+        }
+
+        const { url } = await finalRes.json();
+
+        console.log("Downloading from " + url);
+
+        const fileRes = await fetch(url);
+        const blob = await fileRes.blob();
+        const objectUrl = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = objectUrl;
+        link.download = "demonstration.pdf";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        URL.revokeObjectURL(objectUrl); 
+
+        setStatus("Download Complete!");
       } catch (err) {
         console.error(err);
-        setStatus('Document polling error.');
+        setStatus("Document polling error.");
       }
     };
+
     poll();
   };
 
@@ -199,5 +248,3 @@ export const MarkdownToPDFPlayground = () => {
     </div>
   );
 };
-
-<MarkdownToPDFPlayground />
