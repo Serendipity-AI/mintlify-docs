@@ -10,7 +10,6 @@ export const MarkdownToPDFPlayground = () => {
 
   const apiServer = 'https://intelligence-api-qa.ent.sdy.ai';
   const apiPath = '/v1/document/l402/markdown';
-  const apiKey = 'UUHyULAnSR6uwDfroCWK651sz5IuKgAy8zTlzZaKY33';
 
   const convert = () => {
     isCancelledRef.current = false;
@@ -39,8 +38,7 @@ export const MarkdownToPDFPlayground = () => {
         const response = await fetch(apiServer + apiPath, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify(payload)
         });
@@ -82,8 +80,7 @@ export const MarkdownToPDFPlayground = () => {
         const res = await fetch(apiServer + apiPath, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify(payload)
         });
