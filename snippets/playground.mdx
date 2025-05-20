@@ -213,7 +213,10 @@ export const MarkdownToPDFPlayground = () => {
       {showModal && invoice && qrSvg && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/40 backdrop-blur-sm px-0 sm:px-2">
           <div
-            className="bg-white dark:bg-zinc-900 px-4 py-6 sm:p-5 rounded-none sm:rounded-2xl shadow-none sm:shadow-2xl w-full h-full sm:w-[95vw] sm:max-w-md sm:h-auto text-center border-none sm:border border-zinc-200 dark:border-zinc-800 flex flex-col space-y-3 animate-[swipefadeup_0.35s_ease]"
+            className="bg-white dark:bg-zinc-900 w-full max-w-full h-[100dvh] sm:w-[95vw] sm:max-w-md sm:h-auto 
+                      px-4 py-6 sm:p-5 rounded-none sm:rounded-2xl shadow-none sm:shadow-2xl 
+                      border-none sm:border border-zinc-200 dark:border-zinc-800 
+                      flex flex-col space-y-3 text-center box-border"
           >
             <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-0 mt-1">Scan to Pay</h3>
             <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-0">
