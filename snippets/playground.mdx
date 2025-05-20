@@ -242,18 +242,16 @@ export const MarkdownToPDFPlayground = () => {
           {showPaymentUI && (
             <div className="h-[250px] flex flex-col justify-center bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl p-0 border border-zinc-200 dark:border-zinc-800 items-center mb-4">
               <div className="flex flex-row items-center justify-center w-full h-full gap-6 px-4">
-                <div className="flex flex-col items-center justify-center">
-                  <span className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 m-0 text-left">Scan to Pay</span>
+                <div className="flex flex-col items-center justify-center hidden sm:block">
                   <img
                     src={qrSvg}
                     alt="Lightning QR code"
-                    className="w-32 h-32 bg-white border border-zinc-100 dark:border-zinc-800 mb-8 mt-3"
+                    className="w-[190px] h-[190px] bg-white border border-zinc-100 dark:border-zinc-800"
                   />
                 </div>
-                <div className="h-24 w-px bg-zinc-200 dark:bg-zinc-700 mx-4" />
                 <div className="flex flex-col justify-center flex-1 h-full">
-                  <div className="flex items-center w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3 font-mono text-xs text-zinc-800 dark:text-zinc-200 shadow-sm">
-                    <span className="flex-1 break-all pr-2 leading-tight select-all">{invoice}</span>
+                  <div className="flex items-center w-full font-mono">
+                    <span className="flex-1 break-all pr-2 leading-tight select-all text-[13px]">{invoice}</span>
                     <button
                       onClick={copyInvoice}
                       className="p-1.5 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900 transition flex items-center"
