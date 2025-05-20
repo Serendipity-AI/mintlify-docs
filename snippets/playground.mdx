@@ -313,6 +313,7 @@ export const MarkdownToPDFPlayground = () => {
           ) : (
             <button
               onClick={isProcessing ? () => resetState(true) : convert}
+              disabled={!markdown}
               className="w-full px-4 py-3 h-12 rounded-2xl font-medium
                 relative overflow-hidden
                 bg-[#3F51B5] dark:bg-[#283593]
