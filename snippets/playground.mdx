@@ -20,7 +20,7 @@ export const MarkdownToPDFPlayground = () => {
 
   const STATUS_MESSAGES = {
     WAITING_PAYMENT: 'Waiting for payment...',
-    GENERATING: 'Payment received! Generating your PDF...',
+    GENERATING: 'Generating your PDF',
     READY: 'Your PDF is ready!',
     ERROR: 'Something went wrong. Please try again.',
     PAYMENT_ERROR: 'Error with payment. Please refresh and try again.',
@@ -305,7 +305,7 @@ export const MarkdownToPDFPlayground = () => {
                 </button>
                 <button
                   onClick={resetState}
-                  className="w-full px-3 py-2 rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 text-sm font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
+                  className="w-full px-4 py-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 text-sm font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
                 >
                   Convert Another
                 </button>
@@ -343,7 +343,7 @@ export const MarkdownToPDFPlayground = () => {
                 {isProcessing ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span className="group-hover:hidden transition-opacity duration-200">{statusMessage} ({Math.round(progress)}%)</span>
+                    <span className="group-hover:hidden transition-opacity duration-200">{statusMessage}</span>
                     <span className="hidden group-hover:inline transition-opacity duration-200">Cancel</span>
                   </>
                 ) : (
