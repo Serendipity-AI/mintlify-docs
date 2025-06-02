@@ -6,7 +6,7 @@ description: 'Integrate markdown2pdf into your agentic workflow'
 # For Claude Desktop users
 Get started using the pre-built markdown2pdf server in Claude for Desktop
 
-In this tutorial you will extend [Claude for Desktop](https://claude.ai/download) so that it can convert markdown to PDF using this service, prompting for payment when required.
+In this tutorial you will extend [Claude for Desktop](https://claude.ai/download) so that it can convert markdown to PDF using this service, prompting for payment when required. You can see how this looks below.
 
 <img src="/images/mcp-demo.png" />
 
@@ -40,11 +40,10 @@ Click on “Developer” in the left-hand bar of the Settings pane, and then cli
 
 This will create a configuration file at:
 
-macOS: ~/Library/Application Support/Claude/claude_desktop_config.json
-Windows: %APPDATA%\Claude\claude_desktop_config.json
-if you don’t already have one, and will display the file in your file system.
+macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 
-Open up the configuration file in any text editor. Replace the file contents with this:
+if you don’t already have one, and will display the file in your file system. Open up the configuration file in any text editor. Replace the file contents with this:
 
 <Tabs>
   <Tab title="MacOS/Linux">
@@ -55,7 +54,7 @@ Open up the configuration file in any text editor. Replace the file contents wit
           "command": "npx",
           "args": [
             "-y",
-            "@modelcontextprotocol/markdown2pdf"
+            "@serendipityai/markdown2pdf-mcp"
           ]
         }
       }
@@ -70,7 +69,7 @@ Open up the configuration file in any text editor. Replace the file contents wit
           "command": "npx",
           "args": [
             "-y",
-            "@modelcontextprotocol/markdown2pdf"
+            "@serendipityai/markdown2pdf-mcp"
           ]
         }
       }
@@ -108,11 +107,11 @@ If you get an error saying “command not found” or “node is not recognized�
 
 After updating your configuration file, you need to restart Claude for Desktop.
 
-Upon restarting, you should see a hammer icon in the bottom right corner of the input box:
+Upon restarting, you should see a settings icon in the bottom left corner of the input box:
 
-<img src="/images/quickstart-hammer.png"/>
+<img src="/images/quickstart-settings.png"/>
 
-After clicking on the hammer icon, you should see the tools that come with the markdown2pdf server.
+After clicking on the settings icon, you should see the tools that come with the markdown2pdf server.
 
 ## 4. Try it out!
 
