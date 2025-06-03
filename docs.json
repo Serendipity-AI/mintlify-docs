@@ -48,6 +48,14 @@
       "anchors": []
     }
   },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude"
+    ]
+  },
   "logo": {
     "light": "/logo/light.png",
     "dark": "/logo/dark.png"
