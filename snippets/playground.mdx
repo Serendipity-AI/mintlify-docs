@@ -11,8 +11,8 @@ export const MarkdownToPDFPlayground = () => {
   const pollTimeoutRef = useRef(null);
 
   const API_CONFIG = {
-    URI: 'https://intelligence-api-qa.ent.sdy.ai',
-    PATH: '/v1/document/l402/markdown',
+    URI: 'https://qa.api.markdown2pdf.ai',
+    PATH: '/v1/markdown',
     DOCUMENT_NAME: 'demonstration.pdf',
     DOCUMENT_TITLE: 'Playground demonstration',
     POLL_INTERVAL: 3000
@@ -20,6 +20,7 @@ export const MarkdownToPDFPlayground = () => {
 
   const STATUS_MESSAGES = {
     WAITING_PAYMENT: 'Waiting for payment...',
+    PAYMENT_DETAILS: 'Obtaining payment details...',
     GENERATING: 'Generating your PDF',
     READY: 'Your PDF is ready!',
     ERROR: 'Something went wrong. Please try again.',
@@ -28,13 +29,13 @@ export const MarkdownToPDFPlayground = () => {
     DOWNLOAD_ERROR: 'Failed to retrieve final PDF link.',
     POLLING_ERROR: 'Document polling error.',
     DOWNLOAD_FAILED: 'Download failed. Please try again.',
-    COPIED: 'Copied!'
+    COPIED: 'Copied!',
+    DOCUMENT_FINAL_URL: 'Document ready for retrieval.'
   };
 
   const resetState = (shouldCancel = false) => {
     if (shouldCancel) isCancelledRef.current = true;
     if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
-    
     setInvoice(null);
     setQrSvg(null);
     setDocumentUrl(null);
@@ -50,7 +51,7 @@ export const MarkdownToPDFPlayground = () => {
     setError(errorMessage);
   };
 
-  const convert = async () => {
+    const convert = async () => {
     isCancelledRef.current = false;
     resetState(false);
     setIsProcessing(true);
@@ -76,9 +77,25 @@ export const MarkdownToPDFPlayground = () => {
       });
 
       if (response.status === 402) {
-        const { payment_request, payment_qr_svg } = await response.json();
-        setInvoice(payment_request);
-        setQrSvg(payment_qr_svg);
+        const offerData = await response.json();
+        const offer = offerData.offers[0];
+        offer.type = offer.type || 'one-off';
+
+        const paymentDetailsRes = await fetch(offerData.payment_request_url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            payment_context_token: offerData.payment_context_token,
+            offer_id: offer.id,
+            payment_method: offer.payment_methods
+          })
+        });
+
+        if (!paymentDetailsRes.ok) throw new Error('Payment details request failed');
+
+        const paymentDetails = await paymentDetailsRes.json();
+        setInvoice(paymentDetails.payment_request.payment_request);
+        setQrSvg(paymentDetails.payment_request.payment_qr_svg);
         setStatusMessage(STATUS_MESSAGES.WAITING_PAYMENT);
         setProgress(10);
         await pollPayment(payload);
@@ -86,12 +103,13 @@ export const MarkdownToPDFPlayground = () => {
       }
 
       if (!response.ok) throw new Error('Unexpected response');
-      
+
       const { path } = await response.json();
       setStatusMessage(STATUS_MESSAGES.GENERATING);
-      await pollDocument(`${API_CONFIG.URI}${path}`);
-      
+      await pollDocument(path);
+
     } catch (err) {
+      console.error(err);
       handleError(STATUS_MESSAGES.ERROR);
     }
   };
@@ -123,8 +141,7 @@ export const MarkdownToPDFPlayground = () => {
       setInvoice(null);
       setQrSvg(null);
       setStatusMessage(STATUS_MESSAGES.GENERATING);
-      await pollDocument(`${API_CONFIG.URI}${path}`);
-
+      await pollDocument(path);
     } catch {
       handleError(STATUS_MESSAGES.PAYMENT_ERROR);
     }
@@ -162,7 +179,7 @@ export const MarkdownToPDFPlayground = () => {
           return;
         }
 
-        const finalResponse = await fetch(`${API_CONFIG.URI}${path}`);
+        const finalResponse = await fetch(path);
 
         if (!finalResponse.ok) {
           handleError(STATUS_MESSAGES.DOWNLOAD_ERROR);
@@ -182,6 +199,8 @@ export const MarkdownToPDFPlayground = () => {
 
     await poll();
   };
+
+
 
   const downloadDocument = async () => {
     try {
@@ -207,6 +226,8 @@ export const MarkdownToPDFPlayground = () => {
     setStatusMessage(STATUS_MESSAGES.COPIED);
     setTimeout(() => setStatusMessage(STATUS_MESSAGES.WAITING_PAYMENT), 1000);
   };
+
+
 
   const showPaymentUI = invoice && qrSvg && !documentUrl;
   const showDownloadUI = documentUrl;
