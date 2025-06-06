@@ -32,6 +32,20 @@ import { MarkdownToPDFPlayground } from '/snippets/playground.mdx'
 Here's the output of a markdown file converted to PDF format, showing cover page, table of contents and table support. Our engine is powered by LaTeX rather than HTML to PDF conversion as many other libraries and services use, which results in a much higher quality, print-ready output. 
 
 <img src="/images/examples.png" alt="Markdown to PDF examples" />
+
+Below are a few downloadable examples you can try out:
+
+<Columns cols={3}>
+  <Card title="Markdown syntax guide" img="/images/example-markdown.png" href="https://research.serendipity.ai/markdown2pdf/markdown.pdf">
+    A document that shows the markdown supported.
+  </Card>
+  <Card title="Research report" img="/images/example-research.png" href="https://research.serendipity.ai/markdown2pdf/report.pdf">
+    An example research report with comparison tables.
+  </Card>
+  <Card title="Book" img="/images/example-book.png"  href="https://research.serendipity.ai/markdown2pdf/book.pdf">
+    A book with a cover page, table of contents and chapters.
+  </Card>
+</Columns>
  
 <MarkdownToPDFPlayground />
 
@@ -41,7 +55,6 @@ Here's the output of a markdown file converted to PDF format, showing cover page
     title="5 sats per PDF"
     icon="bitcoin"
     horizontal="true"
- 
   >
     Roughly $0.01 per PDF. Pay as you go in Bitcoin using the Lightning network and L402 protocol. Up to 100 pages per PDF, custom templates available on request.   
   </Card>
@@ -49,40 +62,41 @@ Here's the output of a markdown file converted to PDF format, showing cover page
 ## Quick start
 
 <Tabs>
-  <Tab title="bash">
-    ```bash
-curl -X POST https://api.markdown2pdf.ai/v1/convert \
-     -H "Content-Type: text/markdown" \
-     -H "Authorization: L402 <macaroon>:<preimage>" \
-     --data-binary @your_file.md \
-     --output your_file.pdf
-```
-  </Tab>
-  <Tab title="MCP">
-    ```bash
-curl -X POST https://api.markdown2pdf.ai/v1/convert \
-     -H "Content-Type: text/markdown" \
-     -H "Authorization: L402 <macaroon>:<preimage>" \
-     --data-binary @your_file.md \
-     --output your_file.pdf
-```
-  </Tab>
   <Tab title="Python">
     ```bash
-curl -X POST https://api.markdown2pdf.ai/v1/convert \
-     -H "Content-Type: text/markdown" \
-     -H "Authorization: L402 <macaroon>:<preimage>" \
-     --data-binary @your_file.md \
-     --output your_file.pdf
-```
+    pip install markdown2pdf
+    ```
+    ```python
+    from markdown2pdf import MarkdownPDF
+
+    def pay(offer):
+        print("⚡ Lightning payment required")
+        print(f"Amount: {offer['amount']} {offer['currency']}")
+        print(f"Description: {offer['description']}")
+        print(f"Invoice: {offer['payment_request']}")
+        input("Press Enter once paid...")
+
+    client = MarkdownPDF(on_payment_request=pay)
+    path = client.convert(markdown="# Save this one", title="My document title", download_path="output.pdf")
+    print("Saved PDF to:", path)
+    ```
+      </Tab>
+      <Tab title="MCP">
+      You can drop the below configuration in to your Claude MCP config to add PDF conversion to your chat workflow.
+        ```bash
+      "mcpServers": {
+          "markdown2pdf": {
+            "command":"npx",
+            "args": ["@serendipityai/markdown2pdf-mcp"],
+            "cwd": "~"
+          }
+      }
+    ```
   </Tab>
+  
   <Tab title="Typescript">
-    ```bash
-curl -X POST https://api.markdown2pdf.ai/v1/convert \
-     -H "Content-Type: text/markdown" \
-     -H "Authorization: L402 <macaroon>:<preimage>" \
-     --data-binary @your_file.md \
-     --output your_file.pdf
+    ```typescript
+// Coming soon!
 ```
   </Tab>
 </Tabs>

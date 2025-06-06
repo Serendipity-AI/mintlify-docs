@@ -1,0 +1,148 @@
+---
+title: 'Python SDK'
+description: 'Easily use markdown2pdf.ai in your Python-based agentic workflows'
+---
+
+# Getting started
+
+Our Python SDK makes it easy to use markdown2pdf.ai in your agentic workflows. Whilst using our REST APIs is straightforward, there are some complexities to handle around polling for payment completion and document generation that the SDK avoids you needing to worry about.
+
+First up, you'll need to install the SDK:
+
+```bash
+pip install markdown2pdf
+```
+
+With that done, you can try some sample code:
+
+```python
+from markdown2pdf import MarkdownPDF
+
+def pay(offer):
+    print("⚡ Lightning payment required")
+    print(f"Amount: {offer['amount']} {offer['currency']}")
+    print(f"Description: {offer['description']}")
+    print(f"Invoice: {offer['payment_request']}")
+    input("Press Enter once paid...")
+
+client = MarkdownPDF(on_payment_request=pay)
+path = client.convert(markdown="# Insert your own markdown content here", title="My document title", download_path="output.pdf")
+print("Saved PDF to:", path)
+```
+
+This code will convert the markdown content you provide into a PDF, prompting you to pay via Lightning Network if necessary. The `on_payment_request` function is called when payment is required, allowing you to handle the payment process in your application. There are several ways of handling payments automatically, such as [fewsats.com](https://fewsats.com) or [albyhub](https://albyhub.com) or using a Lightning wallet that supports automatic payments. In the example above, we simply print the payment details and wait for you to confirm payment manually. You can simply copy and paste the lightning invoice into your lightning wallet to pay.
+
+# API Reference
+
+
+### `class MarkdownPDF`
+
+The main class for interacting with the markdown2pdf.ai service.
+
+#### `__init__(on_payment_request: Optional[Callable] = None, api_url: Optional[str] = None)`
+<ParamField body="on_payment_request" type="function" required>
+This function is called when a payment is required. It receives an `offer` object containing details about the payment, such as amount, currency, description, and the Lightning invoice. You can implement your own logic to handle payments here.
+
+```python
+def pay(offer):
+    print("⚡ Lightning payment required")
+    print(f"Amount: {offer['amount']} {offer['currency']}")
+    print(f"Description: {offer['description']}")
+    print(f"Invoice: {offer['payment_request']}")
+    input("Press Enter once paid...")
+
+client = MarkdownPDF(on_payment_request=pay)
+```
+```json
+offer = {
+    "offer_id": "abc",
+    "amount": 1,
+    "currency": "usd",
+    "description": "test payment",
+    "payment_context_token": "def",
+    "payment_request_url": "http://path.to/payment/request",
+}
+```
+</ParamField>
+
+<ParamField body="api_url" type="string">
+This parameter enables you to override the default API URL. This is typically used in development or testing environments, but for normal usage you won't need to touch it and it can be set to `None` or omitted.
+</ParamField>
+
+#### `convert(markdown: str, date: Optional[str] = None, title: Optional[str] = None, download_path: Optional[str] = None, return_bytes: bool = False)`
+
+<ParamField body="markdown" type="string" required>
+A string containing the markdown content you want to convert to PDF. 
+<Tip>
+A note on markdown hashing
+
+markdown2pdf.ai uses a hashing mechanism to ensure that you won't get charge twice for creating the same PDF. Subsequent requests to convert the same markdown content will return the previously generated PDF without requiring a new payment. 
+</Tip>
+</ParamField>
+
+<ParamField body="date" type="string">
+A string containing the date to use on the front cover. If not provided, the current date will be used.
+</ParamField>
+
+<ParamField body="title" type="string">
+A string containing the title to use on the front cover. If not provided, a default will be used.
+</ParamField>
+
+<ParamField body="download_path" type="string">
+A string containing the path to use for saving the PDF file. If not provided, the PDF will be returned as bytes.
+
+For example:
+
+```python
+path = client.convert(markdown="# Save this one", download_path="output.pdf") 
+print("Saved PDF to:", path)
+```
+</ParamField>
+
+<ParamField body="return_bytes" type="boolean">
+Whether or not to return the PDF as bytes instead of saving it to a file. If set to `True`, the method will return the PDF content as a byte string. If set to `False`, it will save the PDF to the specified `download_path` or return the path if no path is provided.
+
+For example:
+
+```python
+pdf_bytes = client.convert(markdown="# Memory use case", return_bytes=True) 
+print(f"PDF size in memory: {len(pdf_bytes)} bytes")
+```
+</ParamField>
+
+# Automating payments
+
+If you want to automate payments, you can use a service like [fewsats.com](https://fewsats.com) or [albyhub](https://albyhub.com). These services allow you to automatically pay Lightning invoices, completely headlessly.
+
+<Tabs>
+  <Tab title="Albyhub">
+
+    ```python
+    from markdown2pdf import MarkdownPDF
+    from dotenv import load_dotenv
+    from pyalby import Account, Invoice, Payment
+
+    load_dotenv()
+    # In your .env file, ensure you have set the following. You can learn more about alby at https://albyhub.com.
+    # BASE_URL = https://api.getalby.com
+    # ALBY_ACCESS_TOKEN = <your_alby_access_token>
+    # LOG_LEVEL = INF
+
+    def pay(offer):
+        print("Paying using Alby:")
+        payment = Payment()
+        pay = payment.bolt11_payment(offer["payment_request"])
+        print(f"Payment made: {pay}")
+
+    client = MarkdownPDF(on_payment_request=pay)
+    path = client.convert(markdown="# Save this one using Alby", download_path="output.pdf") # Replace with your own unique markdown content to ensure you trigger L402.
+    print("Saved PDF to:", path)
+    ```
+    </Tab>
+    <Tab title="FewSats">
+
+        ```python
+        A fewsats example coming soon
+        ```
+    </Tab>
+</Tabs>
