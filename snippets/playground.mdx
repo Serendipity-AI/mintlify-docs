@@ -56,12 +56,19 @@ export const MarkdownToPDFPlayground = () => {
     resetState(false);
     setIsProcessing(true);
 
+    const date = new Date();
+    const formatted_date = new Intl.DateTimeFormat('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(date);
+
     const payload = {
       data: {
         text_body: markdown,
         meta: {
           title: API_CONFIG.DOCUMENT_TITLE,
-          date: new Date().toISOString()
+          date: formatted_date
         }
       },
       options: {
