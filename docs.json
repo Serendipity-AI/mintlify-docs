@@ -19,8 +19,9 @@
             "pages": [
               "index",
               "quickstart",
-              "l402",
-              "mcp"
+              "python",
+              "mcp",
+              "l402"
             ]
           },
           {
