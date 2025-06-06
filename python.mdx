@@ -40,6 +40,9 @@ This code will convert the markdown content you provide into a PDF, prompting yo
 The main class for interacting with the markdown2pdf.ai service.
 
 #### `constructor`
+
+Used for initializing the MarkdownPDF client.
+
 <ParamField body="on_payment_request" type="function" required>
 This function is called when a payment is required. It receives an `offer` object containing details about the payment, such as amount, currency, description, and the Lightning invoice. You can implement your own logic to handle payments here. This parameter is required because the service uses the L402 protocol, which requires a payment to be made before generating the PDF.
 
@@ -70,6 +73,8 @@ This parameter enables you to override the default API URL. This is typically us
 </ParamField>
 
 #### `convert`
+
+Converts the provided markdown content into a PDF document. This method handles the payment process automatically if required, and saves a PDF to the specified path or returns it as bytes.
 
 <ParamField body="markdown" type="string" required>
 A string containing the markdown content you want to convert to PDF. 
