@@ -1,725 +1,1308 @@
 {
-  "info": {
-    "title": "Document-Engine-Api",
-    "description": "Welcome to the API documentation.",
-    "version": "1.4.2"
-  },
-  "openapi": "3.1.0",
-  "components": {
-    "schemas": {
-      "DocumentGenerationJobOutput": {
-        "properties": {
-          "url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Url"
-          }
-        },
-        "type": "object",
-        "title": "DocumentGenerationJobOutput"
-      },
-      "EmailDelivery": {
-        "properties": {
-          "method": {
-            "type": "string",
-            "const": "email",
-            "title": "Method",
-            "default": "email"
-          },
-          "to": {
-            "type": "string",
-            "title": "To"
-          }
-        },
-        "type": "object",
-        "required": [
-          "to"
-        ],
-        "title": "EmailDelivery"
-      },
-      "GeneralDocumentRequest": {
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/GeneralDocumentRequestData"
-          },
-          "options": {
-            "$ref": "#/components/schemas/GeneralDocumentRequestOptions"
-          }
-        },
-        "type": "object",
-        "required": [
-          "data",
-          "options"
-        ],
-        "title": "GeneralDocumentRequest"
-      },
-      "GeneralDocumentRequestData": {
-        "properties": {
-          "text_body": {
-            "type": "string",
-            "title": "Text Body"
-          }
-        },
-        "type": "object",
-        "required": [
-          "text_body"
-        ],
-        "title": "GeneralDocumentRequestData"
-      },
-      "GeneralDocumentRequestOptions": {
-        "properties": {
-          "delivery": {
-            "anyOf": [
-              {
-                "oneOf": [
-                  {
-                    "$ref": "#/components/schemas/S3Delivery"
-                  },
-                  {
-                    "$ref": "#/components/schemas/EmailDelivery"
-                  },
-                  {
-                    "$ref": "#/components/schemas/WebhookDelivery"
-                  }
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Document-Engine-Api",
+        "description": "Welcome to the API documentation.\nBelow you will find the most recent changes to the API:\n\n## Recent Changes:\n### 1.8.0\n- **Feature**: Add dynamic template switching for `v1/document/general/markdown` for different client kinds. This supports switching between WEF branded templates and General templates for generating the pdfs.\n\n### 1.7.0\n- **Feature**: Support wider range of languages in the `/v1/document/general/markdown` request. The language is now detected implicitly by parsing the main text body.\n- **Improvement**: Reduce cache usage by not caching assets stored in serendipity private s3 buckets. This avoids the storing of 1MB large transformation map images in expensive storage.\n\n### 1.6.0\n- **Feature**: Add support for sendgrid email templates and multi-tenant extensibility.\n- **Deprecation**: Deprecate the `delivery.to` field for email to be replaced by `delivery.to_email`\n- **Improvement**: Add support for zuplo auth tokens and general authentication improvements.\n\n---\n\n[Full Changelog](https://github.com/Serendipity-AI/document-engine/blob/qa/Changelog.md)",
+        "version": "1.8.1"
+    },
+    "servers": [
+        {
+        "url": "https:api.markdown2pdf.ai"
+        }
+    ],
+    "paths": {
+        "/v1/document/general/markdown": {
+            "post": {
+                "tags": [
+                    "General Documents"
                 ],
-                "discriminator": {
-                  "propertyName": "method",
-                  "mapping": {
-                    "email": "#/components/schemas/EmailDelivery",
-                    "s3": "#/components/schemas/S3Delivery",
-                    "webhook": "#/components/schemas/WebhookDelivery"
-                  }
-                }
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Delivery"
-          },
-          "document_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Document Name"
-          }
-        },
-        "type": "object",
-        "title": "GeneralDocumentRequestOptions"
-      },
-      "HTTPValidationError": {
-        "properties": {
-          "detail": {
-            "items": {
-              "$ref": "#/components/schemas/ValidationError"
-            },
-            "type": "array",
-            "title": "Detail"
-          }
-        },
-        "type": "object",
-        "title": "HTTPValidationError"
-      },
-      "JobStatus": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description",
-            "examples": [
-              "Generating live briefing for topic 'a1Gb0000005LWrfEAG'"
-            ]
-          },
-          "status": {
-            "$ref": "#/components/schemas/Status",
-            "examples": [
-              "Processing"
-            ]
-          },
-          "status_meta": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Status Meta",
-            "examples": [
-              "document_generation_started",
-              "document_rendering_started"
-            ]
-          },
-          "progress": {
-            "type": "number",
-            "maximum": 1,
-            "minimum": 0,
-            "title": "Progress",
-            "default": 0,
-            "examples": [
-              0.5
-            ]
-          },
-          "path": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Path",
-            "examples": [
-              "/path/to/job-poll/or/job-retrieve/endpoint"
-            ]
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "status"
-        ],
-        "title": "JobStatus"
-      },
-      "LiveBriefingGenerateRequest": {
-        "properties": {
-          "options": {
-            "$ref": "#/components/schemas/LiveBriefingGenerateRequestOptions"
-          }
-        },
-        "type": "object",
-        "required": [
-          "options"
-        ],
-        "title": "LiveBriefingGenerateRequest"
-      },
-      "LiveBriefingGenerateRequestOptions": {
-        "properties": {
-          "include_reports": {
-            "type": "boolean",
-            "title": "Include Reports",
-            "description": "Append Further Reading to the end of the document"
-          },
-          "include_foresight": {
-            "type": "boolean",
-            "title": "Include Foresight",
-            "description": "Include Strategic Foresight materials in the document"
-          },
-          "include_insight": {
-            "type": "boolean",
-            "title": "Include Insight",
-            "description": "Include Insight into the Document"
-          },
-          "include_watermark": {
-            "type": "boolean",
-            "title": "Include Watermark",
-            "description": "Append Further Reading to the end of the document"
-          },
-          "review_text_terms": {
-            "type": "boolean",
-            "title": "Review Text Terms",
-            "description": "This is an admin option intended for iterating the .tex template. If True, the text terms retrieved will be encapsulated in highlighted text with labels  for easier reviewing",
-            "default": false
-          }
-        },
-        "type": "object",
-        "required": [
-          "include_reports",
-          "include_foresight",
-          "include_insight",
-          "include_watermark"
-        ],
-        "title": "LiveBriefingGenerateRequestOptions",
-        "description": "Configuration options for generating a live briefing.\n\nThese options allow clients to customise the content and formatting of the generated document."
-      },
-      "LiveBriefingJobOutput": {
-        "properties": {
-          "live_briefing_url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Live Briefing Url",
-            "examples": [
-              "https://bucket-name.s3.amazonaws.com/key-name-1",
-              "https://bucket-name.s3.amazonaws.com/key-name-2",
-              "https://bucket-name.s3.amazonaws.com/key-name-3",
-              "https://bucket-name.s3.amazonaws.com/key-name-4",
-              "https://bucket-name.s3.amazonaws.com/key-name-5"
-            ]
-          }
-        },
-        "type": "object",
-        "required": [
-          "live_briefing_url"
-        ],
-        "title": "LiveBriefingJobOutput"
-      },
-      "ProgressResponse": {
-        "properties": {
-          "request": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Request"
-          },
-          "progress": {
-            "type": "integer",
-            "maximum": 100,
-            "minimum": 0,
-            "title": "Progress"
-          }
-        },
-        "type": "object",
-        "required": [
-          "request",
-          "progress"
-        ],
-        "title": "ProgressResponse"
-      },
-      "S3Delivery": {
-        "properties": {
-          "method": {
-            "type": "string",
-            "const": "s3",
-            "title": "Method",
-            "default": "s3"
-          },
-          "s3_key": {
-            "type": "string",
-            "title": "S3 Key"
-          },
-          "presigned_url": {
-            "type": "string",
-            "title": "Presigned Url"
-          },
-          "fields": {
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "type": "object",
-            "title": "Fields"
-          }
-        },
-        "type": "object",
-        "required": [
-          "s3_key",
-          "presigned_url",
-          "fields"
-        ],
-        "title": "S3Delivery"
-      },
-      "Status": {
-        "type": "string",
-        "enum": [
-          "Not Started",
-          "Processing",
-          "Done",
-          "Error"
-        ],
-        "title": "Status"
-      },
-      "ValidationError": {
-        "properties": {
-          "loc": {
-            "items": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                }
-              ]
-            },
-            "type": "array",
-            "title": "Location"
-          },
-          "msg": {
-            "type": "string",
-            "title": "Message"
-          },
-          "type": {
-            "type": "string",
-            "title": "Error Type"
-          }
-        },
-        "type": "object",
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
-        "title": "ValidationError"
-      },
-      "WebhookDelivery": {
-        "properties": {
-          "method": {
-            "type": "string",
-            "const": "webhook",
-            "title": "Method",
-            "default": "webhook"
-          },
-          "target_url": {
-            "type": "string",
-            "title": "Target Url"
-          },
-          "headers": {
-            "anyOf": [
-              {
-                "additionalProperties": {
-                  "type": "string"
-                },
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Headers"
-          }
-        },
-        "type": "object",
-        "required": [
-          "target_url"
-        ],
-        "title": "WebhookDelivery"
-      }
-    },
-    "securitySchemes": {
-      "OptionalXAuthHTTPBearer": {
-        "type": "http",
-        "description": "The token generated when a user logs in",
-        "scheme": "bearer"
-      },
-      "XAuthHTTPBearer": {
-        "type": "http",
-        "description": "The token generated when a user logs in",
-        "scheme": "bearer"
-      }
-    }
-  },
-  "tags": [
-    {
-      "name": "Live Briefing",
-      "description": "\n\nThe Live Briefing Endpoints enables clients to generate a dynamic, curated briefing for a given topic.\n\n### Process Flow\n\n1. **Initiate a Briefing**  \n   - A `POST` request is sent to generate a live briefing, specifying options such as whether to include reports, foresight materials, or insights.\n   - The response includes a `job` object containing a `path` field that directs the client to a polling endpoint.\n\n2. **Monitor Progress** *(Recommended Approach)*  \n   - The client should periodically poll the job status using the provided `path` until the `status` transitions to `\"Done\"`.\n   - A `progress` field (ranging from `0.0` to `1.0`) provides a high-level indication of completion.\n   - The `status_meta` field offers additional context on the current processing stage.\n\n3. **Retrieve the Final Briefing**  \n   - Once the job is complete, the `path` field updates to point to the output endpoint.\n   - A `GET` request to this endpoint returns a pre-signed S3 URL where the generated briefing document can be downloaded.\n\n### Behind the Scenes\n\nUpon request submission, the API enqueues a job for the **Live Briefing Worker Service**, responsible for assembling the briefing document. This service pulls from relevant data sources, processes content, and uploads the final document to S3. The job object is updated in real-time to reflect these stages.\n\nThis workflow is designed to be a scalable and asynchronous processing, ensuring a high number of concurrent clients can request and then track briefing generation progress.\n\n"
-    },
-    {
-      "name": "Old Live Briefing",
-      "description": "\n⚠️ **Deprecated Compatibility Endpoints**\n\nThis section contains legacy endpoints that replicate the behavior of a previous version \nof the Live Briefing API. These routes exist **solely** to support the mobile app client \nduring its transition to the updated interface.\n\n- The endpoint signatures remain unchanged to preserve client compatibility.\n- Internally, they delegate to the new `/v1/live_briefing` routes.\n- All routes are marked as **deprecated** and will be removed once migration is complete.\n\n📱 These were revived to unblock mobile releases—please do not build new integrations against them.\n\n🧹 Cleanup is planned. If you're reading this and it's July 2025—maybe it's time 🪦\n\n"
-    },
-    {
-      "name": "General Documents",
-      "description": ""
-    }
-  ],
-  "paths": {
-    "/v1/document/general/markdown": {
-      "post": {
-        "operationId": "general_document_v1_document_general_markdown_post",
-        "tags": [
-          "General Documents"
-        ],
-        "summary": "Generate A general document from Markdown",
-        "security": [
-          {
-            "OptionalXAuthHTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "x-authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Authorization"
-            }
-          },
-          {
-            "name": "accept-language",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Accept-Language"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GeneralDocumentRequest"
-              },
-              "examples": {
-                "email": {
-                  "summary": "Email",
-                  "description": "Deliver the generated document to the provided email",
-                  "value": {
-                    "data": {
-                      "text_body": "# Hello world\n Foo"
-                    },
-                    "options": {
-                      "delivery": {
-                        "method": "email",
-                        "to": "backend@serendipityai.co.uk"
-                      }
+                "summary": "Generate A general document from Markdown",
+                "operationId": "general_document_v1_document_general_markdown_post",
+                "security": [
+                    {
+                        "OptionalXAuthHTTPBearer": []
                     }
-                  }
-                },
-                "s3": {
-                  "summary": "Upload document to client-provided S3 bucket",
-                  "description": "The client has provided a presigned POST form. Our service must upload the document to `presigned_url` using the provided `fields`. `s3_key` is included for tracking but must match the `key` field in `fields`.",
-                  "value": {
-                    "data": {
-                      "text_body": "# Hello world\n Foo"
-                    },
-                    "options": {
-                      "delivery": {
-                        "method": "s3",
-                        "s3_key": "clients/abc/uploads/2025/04/hello-world.pdf",
-                        "presigned_url": "https://their-s3-bucket.s3.amazonaws.com/",
-                        "fields": {
-                          "key": "clients/abc/uploads/2025/04/hello-world.pdf",
-                          "acl": "private",
-                          "Content-Type": "application/pdf",
-                          "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
-                          "X-Amz-Credential": "ASIAEXAMPLE/20250409/us-east-1/s3/aws4_request",
-                          "X-Amz-Date": "20250409T120000Z",
-                          "Policy": "eyJleHBpcmF0aW9uIjogIjIwMjUtMDQtMDlUMTI6MzAwWiIsICJjb25kaXRpb25zIjogW3sia2V5IjogImNsaWVudHMvYWJjL3VwbG9hZHMvMjAyNS8wNC9oZWxsby13b3JsZC5wZGYifV19",
-                          "X-Amz-Signature": "a12b34cdef56example7890sig"
+                ],
+                "parameters": [
+                    {
+                        "name": "x-authorization",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Authorization"
                         }
-                      },
-                      "document_name": "hello-world.pdf"
-                    }
-                  }
-                },
-                "default": {
-                  "summary": "General",
-                  "description": "Don't specify a delivery. By default, the document will be uploaded to our s3 bucket",
-                  "value": {
-                    "data": {
-                      "text_body": "# Hello world\n Foo"
                     },
-                    "options": {}
-                  }
+                    {
+                        "name": "x-api-key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GeneralDocumentRequest"
+                            },
+                            "examples": {
+                                "email": {
+                                    "summary": "Email",
+                                    "description": "Deliver the generated document to the provided email",
+                                    "value": {
+                                        "data": {
+                                            "text_body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque eget lobortis ante, scelerisque tristique lacus. Morbi ornare vel quam sed.",
+                                            "meta": {
+                                                "author": "John Doe",
+                                                "title": "Hello World",
+                                                "date": "25 January 2025",
+                                                "subtitle": "Subtitle",
+                                                "disclaimer": "This is the disclaimer"
+                                            }
+                                        },
+                                        "options": {
+                                            "delivery": {
+                                                "method": "email",
+                                                "to_email": "backend@serendipityai.co.uk"
+                                            }
+                                        }
+                                    }
+                                },
+                                "s3": {
+                                    "summary": "Upload document to client-provided S3 bucket",
+                                    "description": "The client has provided a presigned POST form. Our service must upload the document to `presigned_url` using the provided `fields`. `s3_key` is included for tracking but must match the `key` field in `fields`.",
+                                    "value": {
+                                        "data": {
+                                            "text_body": "# Hello world\n Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque eget lobortis ante, scelerisque tristique lacus. Morbi ornare vel quam sed.",
+                                            "meta": {
+                                                "author": "Jane Doe",
+                                                "disclaimer": "This is the disclaimer"
+                                            }
+                                        },
+                                        "options": {
+                                            "delivery": {
+                                                "method": "s3",
+                                                "s3_key": "clients/abc/uploads/2025/04/hello-world.pdf",
+                                                "presigned_url": "https://their-s3-bucket.s3.amazonaws.com/",
+                                                "fields": {
+                                                    "key": "clients/abc/uploads/2025/04/hello-world.pdf",
+                                                    "acl": "private",
+                                                    "Content-Type": "application/pdf",
+                                                    "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
+                                                    "X-Amz-Credential": "ASIAEXAMPLE/20250409/us-east-1/s3/aws4_request",
+                                                    "X-Amz-Date": "20250409T120000Z",
+                                                    "Policy": "eyJleHBpcmF0aW9uIjogIjIwMjUtMDQtMDlUMTI6MzAwWiIsICJjb25kaXRpb25zIjogW3sia2V5IjogImNsaWVudHMvYWJjL3VwbG9hZHMvMjAyNS8wNC9oZWxsby13b3JsZC5wZGYifV19",
+                                                    "X-Amz-Signature": "a12b34cdef56example7890sig"
+                                                }
+                                            },
+                                            "document_name": "hello-world.pdf"
+                                        }
+                                    }
+                                },
+                                "default": {
+                                    "summary": "General",
+                                    "description": "Don't specify a delivery. By default, the document will be uploaded to our s3 bucket",
+                                    "value": {
+                                        "data": {
+                                            "text_body": "# Hello world\n Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque eget lobortis ante, scelerisque tristique lacus. Morbi ornare vel quam sed.",
+                                            "meta": {
+                                                "author": "Jane Doe",
+                                                "subtitle": "Subtitle",
+                                                "disclaimer": "This is the disclaimer"
+                                            }
+                                        },
+                                        "options": {}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JobStatus"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
                 }
-              }
             }
-          }
         },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JobStatus"
+        "/v1/document/general/job/{job_id}/status": {
+            "get": {
+                "tags": [
+                    "General Documents"
+                ],
+                "summary": "Poll Live Briefing Job",
+                "description": "Checks the status of a job given a job_repo id.",
+                "operationId": "live_briefing_job_status_v1_document_general_job__job_id__status_get",
+                "parameters": [
+                    {
+                        "name": "job_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Job Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JobStatus"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The provided job_id was not found or the user does not have access to the job."
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
                 }
-              }
             }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
         },
-        "x-zuplo-route": {
-          "corsPolicy": "none",
-          "handler": {
-            "export": "urlForwardHandler",
-            "module": "$import(@zuplo/runtime)",
-            "options": {
-              "baseUrl": "http:127.0.0.1:8000"
-            }
-          }
-        }
-      }
-    },
-    "/v1/document/general/job/{job_id}/status": {
-      "get": {
-        "operationId": "live_briefing_job_status_v1_document_general_job__job_id__status_get",
-        "tags": [
-          "General Documents"
-        ],
-        "summary": "Poll Live Briefing Job",
-        "description": "Checks the status of a job given a job_repo id.",
-        "parameters": [
-          {
-            "name": "job_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Job Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JobStatus"
+        "/v1/document/general/job/{job_id}/output": {
+            "get": {
+                "tags": [
+                    "General Documents"
+                ],
+                "summary": "Retrieve Document Output",
+                "description": "Checks the status of a job given a job_repo id.",
+                "operationId": "document_job_output_v1_document_general_job__job_id__output_get",
+                "parameters": [
+                    {
+                        "name": "job_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Job Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DocumentGenerationJobOutput"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The provided job_id was not found or the user does not have access to the job."
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
                 }
-              }
             }
-          },
-          "404": {
-            "description": "The provided job_id was not found or the user does not have access to the job."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/document/general/job/{job_id}/output": {
-      "get": {
-        "operationId": "document_job_output_v1_document_general_job__job_id__output_get",
-        "tags": [
-          "General Documents"
-        ],
-        "summary": "Retrieve Document Output",
-        "description": "Checks the status of a job given a job_repo id.",
-        "parameters": [
-          {
-            "name": "job_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Job Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DocumentGenerationJobOutput"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "The provided job_id was not found or the user does not have access to the job."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/health": {
-      "get": {
-        "tags": [
-          "Utilities"
-        ],
-        "summary": "Read Health",
-        "operationId": "read_health_health_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
         },
-        "x-zuplo-route": {
-          "corsPolicy": "none",
-          "handler": {
-            "export": "urlForwardHandler",
-            "module": "$import(@zuplo/runtime)",
-            "options": {
-              "baseUrl": "http:127.0.0.1:8000"
+        "/v1/document/l402/markdown/payment-request": {
+            "post": {
+                "tags": [
+                    "L402"
+                ],
+                "summary": "Get Payment Request",
+                "operationId": "get_payment_request_v1_document_l402_markdown_payment_request_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/JobPaymentRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/components/schemas/JobPaymentRequestResponse"
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ],
+                                    "title": "Response Get Payment Request V1 Document L402 Markdown Payment Request Post"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
             }
-          }
+        },
+        "/v1/document/l402/markdown": {
+            "post": {
+                "tags": [
+                    "L402"
+                ],
+                "summary": "Generate A paid for general document from Markdown",
+                "operationId": "general_document_l402_v1_document_l402_markdown_post",
+                "parameters": [
+                    {
+                        "name": "x-api-key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GeneralDocumentRequest"
+                            },
+                            "examples": {
+                                "email": {
+                                    "summary": "Email",
+                                    "description": "Deliver the generated document to the provided email",
+                                    "value": {
+                                        "data": {
+                                            "text_body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque eget lobortis ante, scelerisque tristique lacus. Morbi ornare vel quam sed.",
+                                            "meta": {
+                                                "author": "John Doe",
+                                                "title": "Hello World",
+                                                "date": "25 January 2025",
+                                                "subtitle": "Subtitle",
+                                                "disclaimer": "This is the disclaimer"
+                                            }
+                                        },
+                                        "options": {
+                                            "delivery": {
+                                                "method": "email",
+                                                "to_email": "backend@serendipityai.co.uk"
+                                            }
+                                        }
+                                    }
+                                },
+                                "s3": {
+                                    "summary": "Upload document to client-provided S3 bucket",
+                                    "description": "The client has provided a presigned POST form. Our service must upload the document to `presigned_url` using the provided `fields`. `s3_key` is included for tracking but must match the `key` field in `fields`.",
+                                    "value": {
+                                        "data": {
+                                            "text_body": "# Hello world\n Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque eget lobortis ante, scelerisque tristique lacus. Morbi ornare vel quam sed.",
+                                            "meta": {
+                                                "author": "Jane Doe",
+                                                "disclaimer": "This is the disclaimer"
+                                            }
+                                        },
+                                        "options": {
+                                            "delivery": {
+                                                "method": "s3",
+                                                "s3_key": "clients/abc/uploads/2025/04/hello-world.pdf",
+                                                "presigned_url": "https://their-s3-bucket.s3.amazonaws.com/",
+                                                "fields": {
+                                                    "key": "clients/abc/uploads/2025/04/hello-world.pdf",
+                                                    "acl": "private",
+                                                    "Content-Type": "application/pdf",
+                                                    "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
+                                                    "X-Amz-Credential": "ASIAEXAMPLE/20250409/us-east-1/s3/aws4_request",
+                                                    "X-Amz-Date": "20250409T120000Z",
+                                                    "Policy": "eyJleHBpcmF0aW9uIjogIjIwMjUtMDQtMDlUMTI6MzAwWiIsICJjb25kaXRpb25zIjogW3sia2V5IjogImNsaWVudHMvYWJjL3VwbG9hZHMvMjAyNS8wNC9oZWxsby13b3JsZC5wZGYifV19",
+                                                    "X-Amz-Signature": "a12b34cdef56example7890sig"
+                                                }
+                                            },
+                                            "document_name": "hello-world.pdf"
+                                        }
+                                    }
+                                },
+                                "default": {
+                                    "summary": "General",
+                                    "description": "Don't specify a delivery. By default, the document will be uploaded to our s3 bucket",
+                                    "value": {
+                                        "data": {
+                                            "text_body": "# Hello world\n Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque eget lobortis ante, scelerisque tristique lacus. Morbi ornare vel quam sed.",
+                                            "meta": {
+                                                "author": "Jane Doe",
+                                                "subtitle": "Subtitle",
+                                                "disclaimer": "This is the disclaimer"
+                                            }
+                                        },
+                                        "options": {}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/components/schemas/JobStatus"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/JobPaymentRequiredStatus"
+                                        }
+                                    ],
+                                    "title": "Response General Document L402 V1 Document L402 Markdown Post"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/document/l402/job/{job_id}/status": {
+            "get": {
+                "tags": [
+                    "L402"
+                ],
+                "summary": "Poll Live Briefing Job",
+                "description": "Checks the status of a job given a job_repo id.",
+                "operationId": "live_briefing_job_status_v1_document_l402_job__job_id__status_get",
+                "parameters": [
+                    {
+                        "name": "job_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Job Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JobStatus"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The provided job_id was not found or the user does not have access to the job."
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/document/l402/job/{job_id}/output": {
+            "get": {
+                "tags": [
+                    "L402"
+                ],
+                "summary": "Retrieve Document Output",
+                "description": "Checks the status of a job given a job_repo id.",
+                "operationId": "document_job_output_v1_document_l402_job__job_id__output_get",
+                "parameters": [
+                    {
+                        "name": "job_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "title": "Job Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DocumentGenerationJobOutput"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The provided job_id was not found or the user does not have access to the job."
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-      }
-    }
-  }
+    },
+    "components": {
+        "schemas": {
+            "DocumentGenerationJobOutput": {
+                "properties": {
+                    "url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Url"
+                    }
+                },
+                "type": "object",
+                "title": "DocumentGenerationJobOutput"
+            },
+            "GeneralDocumentRequest": {
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/GeneralDocumentRequestData"
+                    },
+                    "options": {
+                        "$ref": "#/components/schemas/GeneralDocumentRequestOptions"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "data",
+                    "options"
+                ],
+                "title": "GeneralDocumentRequest"
+            },
+            "GeneralDocumentRequestData": {
+                "properties": {
+                    "text_body": {
+                        "type": "string",
+                        "title": "Text Body"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/GeneralDocumentRequestDataMeta",
+                        "default": {}
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "text_body"
+                ],
+                "title": "GeneralDocumentRequestData"
+            },
+            "GeneralDocumentRequestDataMeta": {
+                "properties": {
+                    "author": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Author",
+                        "description": "The author of the document which gets presented on the first page of the document. This may also be taken from the auth header if the authorization was issued by FWS.",
+                        "examples": [
+                            "John Doe"
+                        ]
+                    },
+                    "title": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Title",
+                        "description": "The title of the document which gets presented on the first page of the document and in the footer. If not provided, the first #h1 header will be taken from the text_body field",
+                        "examples": [
+                            "Title"
+                        ]
+                    },
+                    "subtitle": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Subtitle",
+                        "description": "The subtitle of the document which gets presented on the first page of the document",
+                        "examples": [
+                            "Subtitle"
+                        ]
+                    },
+                    "disclaimer": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Disclaimer",
+                        "description": "The disclaimer text of the document."
+                    },
+                    "date": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Date",
+                        "description": "The date of the document."
+                    }
+                },
+                "type": "object",
+                "title": "GeneralDocumentRequestDataMeta"
+            },
+            "GeneralDocumentRequestOptions": {
+                "properties": {
+                    "delivery": {
+                        "anyOf": [
+                            {
+                                "oneOf": [
+                                    {
+                                        "$ref": "#/components/schemas/RequestS3Delivery"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/RequestEmailDelivery"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/RequestWebhookDelivery"
+                                    }
+                                ],
+                                "discriminator": {
+                                    "propertyName": "method",
+                                    "mapping": {
+                                        "email": "#/components/schemas/RequestEmailDelivery",
+                                        "s3": "#/components/schemas/RequestS3Delivery",
+                                        "webhook": "#/components/schemas/RequestWebhookDelivery"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Delivery"
+                    },
+                    "document_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Document Name"
+                    }
+                },
+                "type": "object",
+                "title": "GeneralDocumentRequestOptions"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "JobPaymentRequest": {
+                "properties": {
+                    "offer_id": {
+                        "type": "string",
+                        "title": "Offer Id",
+                        "description": "Unique identifier for the payment offer",
+                        "examples": [
+                            "offer_12345"
+                        ]
+                    },
+                    "payment_methods": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Payment Methods",
+                        "description": "Payment method to be used",
+                        "default": "lightning",
+                        "examples": [
+                            "lightning"
+                        ]
+                    },
+                    "payment_context_token": {
+                        "type": "string",
+                        "title": "Payment Context Token",
+                        "description": "Token to identify the payment context",
+                        "examples": [
+                            "context_token_12345"
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "offer_id",
+                    "payment_context_token"
+                ],
+                "title": "JobPaymentRequest"
+            },
+            "JobPaymentRequestResponse": {
+                "properties": {
+                    "version": {
+                        "type": "string",
+                        "title": "Version",
+                        "description": "Version of the payment request response schema",
+                        "default": "0.2.2",
+                        "examples": [
+                            "0.2.2"
+                        ]
+                    },
+                    "payment_request": {
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "type": "object",
+                        "title": "Payment Request",
+                        "description": "Payment request details",
+                        "examples": [
+                            {
+                                "payment_request": "lnbc1..."
+                            }
+                        ]
+                    },
+                    "expires_at": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Expires At",
+                        "description": "Expiration time for the payment request",
+                        "examples": [
+                            "2025-06-06T14:39:01.055952Z"
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "payment_request"
+                ],
+                "title": "JobPaymentRequestResponse"
+            },
+            "JobPaymentRequiredStatus": {
+                "properties": {
+                    "version": {
+                        "type": "string",
+                        "title": "Version",
+                        "examples": [
+                            "0.2.2"
+                        ]
+                    },
+                    "payment_request_url": {
+                        "type": "string",
+                        "title": "Payment Request Url",
+                        "examples": [
+                            "/l402/payment-request"
+                        ]
+                    },
+                    "payment_context_token": {
+                        "type": "string",
+                        "title": "Payment Context Token",
+                        "examples": [
+                            "pct_abc123xyz"
+                        ]
+                    },
+                    "offers": {
+                        "items": {
+                            "$ref": "#/components/schemas/Offer"
+                        },
+                        "type": "array",
+                        "title": "Offers"
+                    },
+                    "terms_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Terms Url",
+                        "examples": [
+                            "https://example.com/terms"
+                        ]
+                    },
+                    "metadata": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": {
+                                    "type": "string"
+                                },
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Metadata",
+                        "examples": [
+                            {
+                                "client_note": "Payment required for premium content",
+                                "resource_id": "resource_abc"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "version",
+                    "payment_request_url",
+                    "payment_context_token",
+                    "offers"
+                ],
+                "title": "JobPaymentRequiredStatus"
+            },
+            "JobStatus": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Id"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description",
+                        "examples": [
+                            "Generating live briefing for topic 'a1Gb0000005LWrfEAG'"
+                        ]
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/Status",
+                        "examples": [
+                            "Processing"
+                        ]
+                    },
+                    "status_meta": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Status Meta",
+                        "examples": [
+                            "document_generation_started",
+                            "document_rendering_started"
+                        ]
+                    },
+                    "progress": {
+                        "type": "number",
+                        "maximum": 1.0,
+                        "minimum": 0.0,
+                        "title": "Progress",
+                        "default": 0,
+                        "examples": [
+                            0.5
+                        ]
+                    },
+                    "path": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Path",
+                        "examples": [
+                            "/path/to/job-poll/or/job-retrieve/endpoint"
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "status"
+                ],
+                "title": "JobStatus"
+            },
+            "LiveBriefingGenerateRequest": {
+                "properties": {
+                    "options": {
+                        "$ref": "#/components/schemas/LiveBriefingGenerateRequestOptions"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "options"
+                ],
+                "title": "LiveBriefingGenerateRequest"
+            },
+            "LiveBriefingGenerateRequestOptions": {
+                "properties": {
+                    "include_reports": {
+                        "type": "boolean",
+                        "title": "Include Reports",
+                        "description": "Append Further Reading to the end of the document"
+                    },
+                    "include_foresight": {
+                        "type": "boolean",
+                        "title": "Include Foresight",
+                        "description": "Include Strategic Foresight materials in the document"
+                    },
+                    "include_insight": {
+                        "type": "boolean",
+                        "title": "Include Insight",
+                        "description": "Include Insight into the Document"
+                    },
+                    "include_watermark": {
+                        "type": "boolean",
+                        "title": "Include Watermark",
+                        "description": "Append Further Reading to the end of the document"
+                    },
+                    "review_text_terms": {
+                        "type": "boolean",
+                        "title": "Review Text Terms",
+                        "description": "This is an admin option intended for iterating the .tex template. If True, the text terms retrieved will be encapsulated in highlighted text with labels  for easier reviewing",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "include_reports",
+                    "include_foresight",
+                    "include_insight",
+                    "include_watermark"
+                ],
+                "title": "LiveBriefingGenerateRequestOptions",
+                "description": "Configuration options for generating a live briefing.\n\nThese options allow clients to customise the content and formatting of the generated document."
+            },
+            "LiveBriefingJobOutput": {
+                "properties": {
+                    "live_briefing_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Live Briefing Url",
+                        "examples": [
+                            "https://bucket-name.s3.amazonaws.com/key-name-1",
+                            "https://bucket-name.s3.amazonaws.com/key-name-2",
+                            "https://bucket-name.s3.amazonaws.com/key-name-3",
+                            "https://bucket-name.s3.amazonaws.com/key-name-4",
+                            "https://bucket-name.s3.amazonaws.com/key-name-5"
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "live_briefing_url"
+                ],
+                "title": "LiveBriefingJobOutput"
+            },
+            "Offer": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id",
+                        "examples": [
+                            "offer_2121"
+                        ]
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title",
+                        "default": "Generate Document",
+                        "examples": [
+                            "Generate Document"
+                        ]
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description",
+                        "default": "Document generation access",
+                        "examples": [
+                            "Document generation access"
+                        ]
+                    },
+                    "amount": {
+                        "type": "integer",
+                        "title": "Amount",
+                        "default": 5,
+                        "examples": [
+                            100
+                        ]
+                    },
+                    "currency": {
+                        "type": "string",
+                        "title": "Currency",
+                        "default": "USD",
+                        "examples": [
+                            "USD"
+                        ]
+                    },
+                    "payment_methods": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Payment Methods",
+                        "default": [
+                            "lightning"
+                        ],
+                        "examples": [
+                            "lightning"
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "title": "Offer"
+            },
+            "ProgressResponse": {
+                "properties": {
+                    "request": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Request"
+                    },
+                    "progress": {
+                        "type": "integer",
+                        "maximum": 100.0,
+                        "minimum": 0.0,
+                        "title": "Progress"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "request",
+                    "progress"
+                ],
+                "title": "ProgressResponse"
+            },
+            "RequestEmailDelivery": {
+                "properties": {
+                    "method": {
+                        "type": "string",
+                        "const": "email",
+                        "title": "Method",
+                        "default": "email"
+                    },
+                    "to": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "To",
+                        "description": "Deprecated. Use 'to_email' instead.",
+                        "deprecated": true
+                    },
+                    "to_email": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "To Email",
+                        "description": "Recipient email address."
+                    }
+                },
+                "type": "object",
+                "title": "RequestEmailDelivery"
+            },
+            "RequestS3Delivery": {
+                "properties": {
+                    "method": {
+                        "type": "string",
+                        "const": "s3",
+                        "title": "Method",
+                        "default": "s3"
+                    },
+                    "s3_key": {
+                        "type": "string",
+                        "title": "S3 Key"
+                    },
+                    "presigned_url": {
+                        "type": "string",
+                        "title": "Presigned Url"
+                    },
+                    "fields": {
+                        "additionalProperties": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        },
+                        "type": "object",
+                        "title": "Fields"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "s3_key",
+                    "presigned_url",
+                    "fields"
+                ],
+                "title": "RequestS3Delivery"
+            },
+            "RequestWebhookDelivery": {
+                "properties": {
+                    "method": {
+                        "type": "string",
+                        "const": "webhook",
+                        "title": "Method",
+                        "default": "webhook"
+                    },
+                    "target_url": {
+                        "type": "string",
+                        "title": "Target Url"
+                    },
+                    "headers": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": {
+                                    "type": "string"
+                                },
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Headers"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "target_url"
+                ],
+                "title": "RequestWebhookDelivery"
+            },
+            "Status": {
+                "type": "string",
+                "enum": [
+                    "Not Started",
+                    "Processing",
+                    "Done",
+                    "Error"
+                ],
+                "title": "Status"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        },
+        "securitySchemes": {
+            "OptionalXAuthHTTPBearer": {
+                "type": "http",
+                "description": "The token generated when a user logs in",
+                "scheme": "bearer"
+            },
+            "XAuthHTTPBearer": {
+                "type": "http",
+                "description": "The token generated when a user logs in",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Live Briefing",
+            "description": "\n\nThe Live Briefing Endpoints enables clients to generate a dynamic, curated briefing for a given topic.\n\n### Process Flow\n\n1. **Initiate a Briefing**  \n   - A `POST` request is sent to generate a live briefing, specifying options such as whether to include reports, foresight materials, or insights.\n   - The response includes a `job` object containing a `path` field that directs the client to a polling endpoint.\n\n2. **Monitor Progress** *(Recommended Approach)*  \n   - The client should periodically poll the job status using the provided `path` until the `status` transitions to `\"Done\"`.\n   - A `progress` field (ranging from `0.0` to `1.0`) provides a high-level indication of completion.\n   - The `status_meta` field offers additional context on the current processing stage.\n\n3. **Retrieve the Final Briefing**  \n   - Once the job is complete, the `path` field updates to point to the output endpoint.\n   - A `GET` request to this endpoint returns a pre-signed S3 URL where the generated briefing document can be downloaded.\n\n### Behind the Scenes\n\nUpon request submission, the API enqueues a job for the **Live Briefing Worker Service**, responsible for assembling the briefing document. This service pulls from relevant data sources, processes content, and uploads the final document to S3. The job object is updated in real-time to reflect these stages.\n\nThis workflow is designed to be a scalable and asynchronous processing, ensuring a high number of concurrent clients can request and then track briefing generation progress.\n\n"
+        },
+        {
+            "name": "Old Live Briefing",
+            "description": "\n⚠️ **Deprecated Compatibility Endpoints**\n\nThis section contains legacy endpoints that replicate the behavior of a previous version \nof the Live Briefing API. These routes exist **solely** to support the mobile app client \nduring its transition to the updated interface.\n\n- The endpoint signatures remain unchanged to preserve client compatibility.\n- Internally, they delegate to the new `/v1/live_briefing` routes.\n- All routes are marked as **deprecated** and will be removed once migration is complete.\n\n📱 These were revived to unblock mobile releases—please do not build new integrations against them.\n\n🧹 Cleanup is planned. If you're reading this and it's July 2025—maybe it's time 🪦\n\n"
+        },
+        {
+            "name": "General Documents",
+            "description": ""
+        }
+    ]
 }
