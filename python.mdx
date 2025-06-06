@@ -32,16 +32,16 @@ print("Saved PDF to:", path)
 
 This code will convert the markdown content you provide into a PDF, prompting you to pay via Lightning Network if necessary. The `on_payment_request` function is called when payment is required, allowing you to handle the payment process in your application. There are several ways of handling payments automatically, such as [fewsats.com](https://fewsats.com) or [albyhub](https://albyhub.com) or using a Lightning wallet that supports automatic payments. In the example above, we simply print the payment details and wait for you to confirm payment manually. You can simply copy and paste the lightning invoice into your lightning wallet to pay.
 
-# API Reference
+# SDK Reference
 
 
 ### `class MarkdownPDF`
 
 The main class for interacting with the markdown2pdf.ai service.
 
-#### `__init__(on_payment_request: Optional[Callable] = None, api_url: Optional[str] = None)`
+#### `constructor`
 <ParamField body="on_payment_request" type="function" required>
-This function is called when a payment is required. It receives an `offer` object containing details about the payment, such as amount, currency, description, and the Lightning invoice. You can implement your own logic to handle payments here.
+This function is called when a payment is required. It receives an `offer` object containing details about the payment, such as amount, currency, description, and the Lightning invoice. You can implement your own logic to handle payments here. This parameter is required because the service uses the L402 protocol, which requires a payment to be made before generating the PDF.
 
 ```python
 def pay(offer):
@@ -69,7 +69,7 @@ offer = {
 This parameter enables you to override the default API URL. This is typically used in development or testing environments, but for normal usage you won't need to touch it and it can be set to `None` or omitted.
 </ParamField>
 
-#### `convert(markdown: str, date: Optional[str] = None, title: Optional[str] = None, download_path: Optional[str] = None, return_bytes: bool = False)`
+#### `convert`
 
 <ParamField body="markdown" type="string" required>
 A string containing the markdown content you want to convert to PDF. 
@@ -78,6 +78,25 @@ A note on markdown hashing
 
 markdown2pdf.ai uses a hashing mechanism to ensure that you won't get charge twice for creating the same PDF. Subsequent requests to convert the same markdown content will return the previously generated PDF without requiring a new payment. 
 </Tip>
+
+Typically your markdown will come from the output of an LLM or AI agent. If you want to load some from a file, you can do it like this:
+
+```python
+from markdown2pdf import MarkdownPDF
+from pathlib import Path
+
+def pay(offer):
+    print("⚡ Lightning payment required")
+    print(f"Amount: {offer['amount']} {offer['currency']}")
+    print(f"Description: {offer['description']}")
+    print(f"Invoice: {offer['payment_request']}")
+    input("Press Enter once paid...")
+
+client = MarkdownPDF(api_url="https://qa.api.markdown2pdf.ai", on_payment_request=pay)
+markdown = Path("examples/md/Song of the silent stars.md").read_text(encoding="utf-8")
+url = client.convert(markdown=markdown, title="Song of the silent stars", date="5th June 2025" ) 
+print("PDF URL:", url)
+```
 </ParamField>
 
 <ParamField body="date" type="string">
